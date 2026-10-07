@@ -63,6 +63,11 @@ export class RelayEntry implements RelayEntryData {
   created: number;
 
   /**
+   * The relay entry of the party this entry is connected to, if known.
+   */
+  peer?: RelayEntry;
+
+  /**
    * Construct entry
    */
   constructor(options: RelayEntryData) {
