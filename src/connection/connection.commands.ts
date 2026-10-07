@@ -65,8 +65,15 @@ export function handleConnectRelay(hostRepository: HostRepository) {
       assert(client, "Unknown client from address");
 
       log.debug("Ensuring relay for both parties");
-      host.relay = getRelayFor(host);
-      client.relay = getRelayFor(client);
+      const hostRelay = getRelayFor(host);
+      const clientRelay = getRelayFor(client);
+      host.relay = hostRelay.port;
+      client.relay = clientRelay.port;
+
+      // Remember who is talking to whom, so a sender whose NAT-mapped address
+      // differs from the registered one can be identified without guessing
+      hostRelay.peer = clientRelay;
+      clientRelay.peer = hostRelay;
 
       log.debug(
         { host: host.relay, client: client.relay },
@@ -96,7 +103,7 @@ function stringifyAddressOf(host: HostEntity) {
   return `${host.remoteAddress}:${host.remotePort}`;
 }
 
-function getRelayFor(host: HostEntity) {
+function getRelayFor(host: HostEntity): RelayEntry {
   // Attempt to create new relay on each connect
   // If there's a relay already, UDPRelayHandler will return that
   // If there's no relay, or it has expired, a new one will be created
@@ -127,5 +134,5 @@ function getRelayFor(host: HostEntity) {
     "Created relay, returning with port %d",
     relayEntry.port,
   );
-  return relayEntry.port;
+  return relayEntry;
 }

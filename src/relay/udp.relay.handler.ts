@@ -198,21 +198,22 @@ export class UDPRelayHandler extends EventEmitter {
   /**
    * Behind a NAT that assigns a different public port per destination, the
    * address a player registered with differs from the one its relay traffic
-   * arrives from. Match the unknown sender to the single other relay entry
-   * with the same public IP, and point that entry at the observed address.
+   * arrives from. The sender is the peer of the target relay; if that peer
+   * shares the sender's public IP, point it at the observed address.
    */
   private rehomeSender(
     sender: NetAddress,
     targetRelay: RelayEntry,
   ): RelayEntry | undefined {
-    const candidates = this._relayTable.filter(
-      (r) => r !== targetRelay && r.address.address === sender.address,
-    );
-    if (candidates.length !== 1) {
+    const entry = targetRelay.peer;
+    if (
+      !entry ||
+      !this._relayTable.includes(entry) ||
+      entry.address.address !== sender.address
+    ) {
       return undefined;
     }
 
-    const entry = candidates[0];
     log.info(
       { from: entry.address, to: sender },
       "Re-homing relay to observed address",
