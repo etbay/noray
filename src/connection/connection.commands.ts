@@ -7,10 +7,15 @@ import { NorayReactor } from "../noray.ts";
 import { HostEntity } from "../hosts/host.entity.ts";
 import { assert } from "../assert.ts";
 
-export function handleConnect(hostRepository: HostRepository) {
+/**
+ * Handle a direct connect request, replying with the peers' addresses.
+ *
+ * @param name Command name to listen on, and to reply with
+ */
+export function handleConnect(hostRepository: HostRepository, name = "connect") {
   return function(server: NorayReactor) {
-    server.on("connect", (command, exchange) => {
-      const log = logger.child({ name: "cmd:connect" });
+    server.on(name, (command, exchange) => {
+      const log = logger.child({ name: `cmd:${name}` });
 
       const socket = exchange.source;
       const oid = command.requireText();
@@ -32,8 +37,8 @@ export function handleConnect(hostRepository: HostRepository) {
       const hostAddress = stringifyAddressOf(host);
       const clientAddress = stringifyAddressOf(client);
 
-      server.send(socket, { name: "connect", params: [hostAddress] });
-      server.send(host.socket, { name: "connect", params: [clientAddress] });
+      server.send(socket, { name, params: [hostAddress] });
+      server.send(host.socket, { name, params: [clientAddress] });
 
       log.debug(
         { client: clientAddress, host: hostAddress, oid },
