@@ -10,5 +10,7 @@ Noray.hook((noray: Noray) => {
 
   noray.reactor
     .configure(handleConnect(hostRepository))
+    .configure(handleConnect(hostRepository, "connect-nat"))
+    .configure(handleConnect(hostRepository, "connect-lan"))
     .configure(handleConnectRelay(hostRepository));
 });
